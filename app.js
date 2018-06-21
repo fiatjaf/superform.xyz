@@ -10,6 +10,7 @@ const cuid = require('cuid')
 const View = require('./View')
 const Entries = require('./Entries')
 const Code = require('./Code')
+const UI = require('./UI')
 
 firebase.initializeApp({
   apiKey: 'AIzaSyBnsHuekLxCqbVSyb_np7j0Yn5jJK5QFpw',
@@ -68,16 +69,10 @@ class App extends React.Component {
           ? f.data()
           : {
             owner: null,
-            code: `// define your view and reduce functions here.
-
-module.exports.view = function (element) {
+            code: `module.exports.reduce = function (state, entry) {
   
-}
-
-module.exports.reduce = function (state, entry) {
-  
-}
-            `
+}`,
+            ui: ''
           }
         this.setState({form})
       }))
@@ -94,7 +89,15 @@ module.exports.reduce = function (state, entry) {
       }))
 
       firebase.auth().onAuthStateChanged(user => {
-        this.setState({user})
+        this.setState(st => {
+          st.user = user
+
+          if (st.form && st.form.owner === null) {
+            st.form.owner = user.uid
+          }
+
+          return st
+        })
       })
     })
 
@@ -114,7 +117,7 @@ module.exports.reduce = function (state, entry) {
     return (
       h('div', [
         h('nav', this.state.user
-          ? `Logged in as ${this.state.user.email}`
+          ? `Logged in as ${this.state.user.email || this.state.user.displayName}`
           : [
             ['Google', new firebase.auth.GoogleAuthProvider()],
             ['Twitter', new firebase.auth.TwitterAuthProvider()],
@@ -127,19 +130,27 @@ module.exports.reduce = function (state, entry) {
             }, 'Sign in with ' + name),
           )),
         this.state.form && this.state.entries &&
-          h(SplitterLayout, [
-            h(View, {
-              code: this.state.form.code,
-              entries: this.state.entries,
-              addEntry: entry => this.addEntry(entry)
-            }),
-            h(SplitterLayout, {vertical: true}, [
+          h(SplitterLayout, {percentage: true}, [
+            h(SplitterLayout, {vertical: true, percentage: true}, [
+              h(View, {
+                code: this.state.form.code,
+                ui: this.state.form.ui,
+                entries: this.state.entries,
+                user: this.state.user,
+                addEntry: entry => this.addEntry(entry)
+              }),
               h(Entries, {
                 entries: this.state.entries
+              })
+            ]),
+            h(SplitterLayout, {vertical: true, percentage: true}, [
+              h(UI, {
+                ui: this.state.form.ui,
+                save: ui => this.saveForm({ui})
               }),
               h(Code, {
                 code: this.state.form.code,
-                save: code => this.saveForm(code)
+                save: code => this.saveForm({code})
               })
             ])
           ])
@@ -147,13 +158,13 @@ module.exports.reduce = function (state, entry) {
     )
   }
 
-  saveForm (code) {
-    let formData = {
+  saveForm (data) {
+    let formData = this.state.form || {
       author: this.state.user.uid,
-      created_at: firebase.firestore.Timestamp.now(),
-      code
+      created_at: firebase.firestore.Timestamp.now()
     }
-    this.formRef.set(formData)
+
+    this.formRef.set(Object.assign(formData, data))
   }
 
   addEntry (entry) {

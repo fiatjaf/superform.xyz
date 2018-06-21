@@ -3,32 +3,32 @@ const h = require('react-hyperscript')
 const debounce = require('debounce')
 const CodeMirror = require('react-codemirror')
 
-require('codemirror/mode/javascript/javascript')
+require('codemirror/mode/pug/pug')
 
 module.exports = class extends React.Component {
   constructor (props) {
     super(props)
 
-    this.dsaveCode = debounce(this.saveCode.bind(this), 700).bind(this)
+    this.dsaveUI = debounce(this.saveUI.bind(this), 700).bind(this)
   }
 
   render () {
     return (
       h('div', [
-        h('h1', 'Reducer'),
+        h('h1', 'UI'),
         h(CodeMirror, {
-          value: this.props.code,
-          onChange: this.dsaveCode,
+          value: this.props.ui,
+          onChange: this.dsaveUI,
           options: {
             viewportMargin: Infinity,
-            mode: 'javascript'
+            mode: 'pug'
           }
         })
       ])
     )
   }
 
-  saveCode (code) {
-    this.props.save(code)
+  saveUI (uicode) {
+    this.props.save(uicode)
   }
 }

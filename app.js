@@ -101,9 +101,7 @@ class App extends React.Component {
       })
     })
 
-    page({
-      hashbang: true
-    })
+    page()
 
     firebase.auth().getRedirectResult()
   }
@@ -116,7 +114,7 @@ class App extends React.Component {
   render () {
     return (
       h('div', [
-        h('nav', this.state.user
+        h('.nav', this.state.user
           ? `Logged in as ${this.state.user.email || this.state.user.displayName}`
           : [
             ['Google', new firebase.auth.GoogleAuthProvider()],
@@ -131,7 +129,12 @@ class App extends React.Component {
           )),
         this.state.form && this.state.entries &&
           h(SplitterLayout, {percentage: true}, [
-            h(SplitterLayout, {vertical: true, percentage: true}, [
+            h(SplitterLayout, {
+              vertical: true,
+              percentage: true,
+              secondaryInitialSize: 0,
+              customClassName: 'view-splitter'
+            }, [
               h(View, {
                 code: this.state.form.code,
                 ui: this.state.form.ui,
@@ -143,7 +146,11 @@ class App extends React.Component {
                 entries: this.state.entries
               })
             ]),
-            h(SplitterLayout, {vertical: true, percentage: true}, [
+            h(SplitterLayout, {
+              vertical: true,
+              percentage: true,
+              secondaryInitialSize: 0
+            }, [
               h(UI, {
                 ui: this.state.form.ui,
                 save: ui => this.saveForm({ui})

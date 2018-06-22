@@ -8,7 +8,7 @@ window.ReactDOM = require('react-dom')
 module.exports = class extends React.Component {
   render () {
     return (
-      h('div', {
+      h('.view', {
         ref: el => {
           if (!el) return
 

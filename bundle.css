@@ -9,8 +9,12 @@ body {
 }
 .nav {
   display: flex;
-  padding: 6px 18px;
+  padding: 12px 18px;
   justify-content: flex-end;
+  background: #5e5e95;
+  color: #fff;
+  font-size: 110%;
+  font-family: monospace;
 }
 .nav a {
   cursor: pointer;
@@ -19,17 +23,67 @@ body {
   margin: 0 9px;
   border-radius: 3px;
   background: dadaf3;
-  color: #111;
 }
 .nav a:hover {
   background: #f5f5f5;
   color: #747474;
 }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  padding: 0 20px;
+  font-family: monospace;
+  font-weight: normal;
+}
+.humane-flatty pre,
+.humane-flatty code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 #Entries {
   white-space: pre-wrap;
 }
-#Entries .entry {
+#Entries table {
+  width: 100%;
+}
+#Entries table tr {
+  cursor: pointer;
+}
+#Entries table tr:hover {
+  background-color: #eee;
+}
+#Entries table td {
+  padding: 3px 7px;
+}
+#Entries table td:not(:first-child) {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+#Entries table .entry {
   font-family: monospace;
+}
+#Entries .controls {
+  margin: 20px 10px;
+  display: flex;
+}
+#Entries .controls button {
+  margin: 0 10px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #e7e3e3;
+}
+#Entries .controls button.save {
+  color: #fff;
+  background: #5e5e95;
+}
+#Entries .controls button.delete {
+  color: #fff;
+  background: #d74343;
 }
 .CodeMirror {
   height: auto;
@@ -38,7 +92,21 @@ body {
   height: 100%;
 }
 #View {
+  --color-1: #ffa500;
+  --color-2: #35dc9b;
+  --color-3: #1aaf75;
+  --font: Ubuntu, Helvetica, sans-serif;
   height: 100%;
+  font-family: var(--font) !important;
+}
+#View h1,
+#View h2,
+#View h3,
+#View h4,
+#View h5,
+#View h6 {
+  color: var(--color-1);
+  padding: 0 20px;
 }
 #View input.mixinTab {
   display: none;
@@ -59,7 +127,7 @@ body {
 #View input.mixinTab:checked + label.mixinTab {
   color: #555;
   border: 1px solid #ddd;
-  border-top: 2px solid #ffa500;
+  border-top: 2px solid var(--color-1);
   border-bottom: 1px solid #fff;
 }
 #View section.mixinSection {
@@ -82,16 +150,52 @@ body {
 #View #mixinTab13:checked ~ #mixinSection13 {
   display: block;
 }
+#View table.mixinTable {
+  width: 100%;
+  font-size: 110%;
+}
+#View table.mixinTable td {
+  padding: 3px 20px;
+}
+#View table.mixinTable th {
+  padding: 6px 30px;
+  text-align: left;
+  font-weight: normal;
+  border-bottom: 2px solid var(--color-2);
+  text-transform: uppercase;
+}
+#View table.mixinTable tbody tr:first-child td {
+  padding-top: 10px;
+}
+#View table.mixinTable tbody tr:hover {
+  color: #fff;
+  background-color: var(--color-3);
+}
 #View form {
   display: flex;
   flex-wrap: wrap;
   margin: 20px auto;
 }
-#View form label {
+#View input[type="submit"],
+#View button {
+  transition: all 0.2s ease-in-out;
+  font: 18px Helvetica, Arial, sans-serif;
+  border: none;
+  background: var(--color-3);
+  color: #fff;
+  padding: 11px 30px;
+}
+#View input[type="submit"]:hover,
+#View button:hover {
+  opacity: 0.8;
+}
+#View form label,
+#View label.mixinField {
   position: relative;
   display: block;
 }
-#View form label input {
+#View form label input,
+#View div.mixinBox {
   font: 18px Helvetica, Arial, sans-serif;
   box-sizing: border-box;
   display: block;
@@ -103,44 +207,38 @@ body {
   outline: none;
   transition: all 0.2s ease-in-out;
 }
-#View form label input::placeholder {
+#View form label input::placeholder,
+#View div.mixinBox::placeholder {
   transition: all 0.2s ease-in-out;
   color: #999;
   font: 18px Helvetica, Arial, sans-serif;
 }
 #View form label input:focus,
-#View form label input.populated {
+#View div.mixinBox:focus,
+#View form label input.populated,
+#View div.mixinBox.populated {
   padding-top: 28px;
   padding-bottom: 12px;
 }
 #View form label input:focus::placeholder,
-#View form label input.populated::placeholder {
+#View div.mixinBox:focus::placeholder,
+#View form label input.populated::placeholder,
+#View div.mixinBox.populated::placeholder {
   color: transparent;
 }
 #View form label input:focus + span,
-#View form label input.populated + span {
+#View div.mixinBox:focus + span,
+#View form label input.populated + span,
+#View div.mixinBox.populated + span {
   opacity: 1;
   top: 10px;
 }
-#View form label span {
-  color: #35dc9b;
+#View span {
+  color: var(--color-2);
   font: 13px Helvetica, Arial, sans-serif;
   position: absolute;
   top: 0px;
   left: 20px;
   opacity: 0;
   transition: all 0.2s ease-in-out;
-}
-#View form input[type="submit"],
-#View form button {
-  transition: all 0.2s ease-in-out;
-  font: 18px Helvetica, Arial, sans-serif;
-  border: none;
-  background: #1aaf75;
-  color: #fff;
-  padding: 16px 40px;
-}
-#View form input[type="submit"]:hover,
-#View form button:hover {
-  background: #109f67;
 }

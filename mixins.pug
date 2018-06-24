@@ -20,7 +20,7 @@ mixin list(items)
       li= item
 
 mixin table(collection, headers)
-  - let headers = headers || collection[0] && Object.keys(collection[0]) || []
+  - headers = headers || collection[0] && Object.keys(collection[0]) || []
 
   table.mixinTable
     thead
@@ -33,11 +33,15 @@ mixin table(collection, headers)
           each h in headers
             td= o[h]
 
+mixin box
+  div.mixinBox
+    block
+
 mixin field(name, label)
   - label = label || name
 
-  label
-    input(type='text', name=name, placeholder=label)
+  label.mixinLabel
+    input(name=name, placeholder=label)&attributes(attributes)
     span= label
 
 mixin value(name, value)

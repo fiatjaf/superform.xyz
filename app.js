@@ -12,6 +12,7 @@ const View = require('./View')
 const Entries = require('./Entries')
 const Code = require('./Code')
 const UI = require('./UI')
+const {n_error, n_success} = require('./helpers')
 
 firebase.initializeApp({
   apiKey: 'AIzaSyBnsHuekLxCqbVSyb_np7j0Yn5jJK5QFpw',
@@ -88,12 +89,13 @@ class App extends React.Component {
         this.setState({form})
       }))
 
-      this.cancel.push(this.entriesRef.orderBy('created_at', 'desc').onSnapshot(e => {
+      this.cancel.push(this.entriesRef.orderBy('created_at', 'asc').onSnapshot(e => {
         this.setState({
           entries: e.docs.map(d => {
             let entry = d.data()
             entry.created_at = entry.created_at.toDate()
             entry.updated_at = entry.updated_at && entry.updated_at.toDate()
+            entry.id = d.id
             return entry
           })
         })
@@ -162,10 +164,12 @@ class App extends React.Component {
                 ui: this.state.form.ui,
                 entries: this.state.entries,
                 user: this.state.user,
-                addEntry: entry => this.addEntry(entry)
+                addEntry: data => this.addEntry(data)
               }),
               h(Entries, {
-                entries: this.state.entries
+                entries: this.state.entries,
+                editEntry: (id, data) => this.editEntry(id, data),
+                deleteEntry: id => this.deleteEntry(id)
               })
             ]),
             h(SplitterLayout, {
@@ -175,7 +179,7 @@ class App extends React.Component {
               onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(2, s)
             }, [
               h(UI, {
-                ui: this.state.form.ui,
+                code: this.state.form.ui,
                 save: ui => this.saveForm({ui})
               }),
               h(Code, {
@@ -205,11 +209,44 @@ class App extends React.Component {
     this.formRef.set(Object.assign(formData, data))
   }
 
-  addEntry (entry) {
-    entry.submitter = this.state.user && this.state.user.uid
-    entry.created_at = firebase.firestore.Timestamp.now()
+  addEntry (data) {
+    this.entriesRef.add({
+      submitter: this.state.user && this.state.user.uid,
+      created_at: firebase.firestore.Timestamp.now(),
+      data
+    })
+      .then(() => {
+        n_success('Created entry successfully.')
+      })
+      .catch(e => {
+        n_error('Failed to create entry. See console for more details.')
+        console.warn('failed to create entry:', e)
+      })
+  }
 
-    this.entriesRef.add(entry)
+  editEntry (id, data) {
+    this.entriesRef.doc(id).set({
+      data,
+      updated_at: firebase.firestore.Timestamp.now()
+    }, {merge: true})
+      .then(() => {
+        n_success('Updated entry successfully.')
+      })
+      .catch(e => {
+        n_error('Failed to update entry. See console for more details.')
+        console.warn('failed to update entry:', e)
+      })
+  }
+
+  deleteEntry (id) {
+    this.entriesRef.doc(id).delete()
+      .then(() => {
+        n_success('Deleted entry successfully.')
+      })
+      .catch(e => {
+        n_error('Failed to delete entry. See console for more details.')
+        console.warn('failed to delete entry:', e)
+      })
   }
 }
 

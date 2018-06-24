@@ -8,8 +8,12 @@ html, body
 
 .nav
   display flex
-  padding 6px 18px
+  padding 12px 18px
   justify-content flex-end
+  background #5e5e95
+  color white
+  font-size 110%
+  font-family monospace
 
   a
     cursor pointer
@@ -18,16 +22,63 @@ html, body
     margin 0 9px
     border-radius 3px
     background dadaf3
-    color #111
 
     &:hover
       background whitesmoke
       color: #747474
+
+h1, h2, h3, h4, h5, h6
+  padding 0 20px
+  font-family monospace
+  font-weight normal
+
+.humane-flatty
+  pre, code
+    white-space pre-wrap
+    word-break break-word
+
 #Entries
   white-space pre-wrap
 
-  .entry
-    font-family monospace 
+  table
+    width 100%
+
+    tr
+      cursor pointer
+
+      &:hover
+        background-color #eee
+
+    td
+      padding 3px 7px
+  
+      &:not(:first-child)
+        white-space pre-wrap
+        word-break break-all
+
+    .entry
+      font-family monospace 
+
+  .controls
+    margin 20px 10px
+    display flex
+
+    button
+      margin 0 10px
+      padding 9px 16px
+      border 0
+      border-radius 4px
+      cursor pointer
+
+      background #e7e3e3
+
+      &.save
+        color white
+        background #5e5e95
+
+      &.delete
+        color white
+        background #d74343
 
 .CodeMirror
   height auto
@@ -36,7 +87,17 @@ html, body
   height 100%
 
 #View
+  --color-1 orange
+  --color-2 #35dc9b
+  --color-3 #1aaf75
+  --font Ubuntu, Helvetica, sans-serif
+
   height 100%
+  font-family var(--font) !important
+
+  h1, h2, h3, h4, h5, h6
+    color var(--color-1)
+    padding 0 20px
 
   input.mixinTab
     display none
@@ -57,7 +118,7 @@ html, body
   input.mixinTab:checked + label.mixinTab
     color #555
     border 1px solid #ddd
-    border-top 2px solid orange
+    border-top 2px solid var(--color-1)
     border-bottom 1px solid #fff
 
   section.mixinSection
@@ -80,60 +141,85 @@ html, body
   #mixinTab13:checked ~ #mixinSection13
     display block
 
+  table.mixinTable
+    width 100%
+    font-size 110%
+
+    td
+      padding 3px 20px
+
+    th
+      padding 6px 30px
+      text-align left
+      font-weight normal
+      border-bottom 2px solid var(--color-2)
+      text-transform uppercase
+
+    tbody
+      tr
+        &:first-child td
+          padding-top 10px
+
+        &:hover
+          color white
+          background-color var(--color-3)
+
   form
     display flex
     flex-wrap wrap
     margin 20px auto
+
+  input[type="submit"] 
+  button
+    transition all 0.2s ease-in-out
+    font 18px Helvetica, Arial, sans-serif
+    border none
+    background var(--color-3)
+    color #fff
+    padding 11px 30px
     
-    label 
-      position relative
-      display block
-      
-      input 
-        font 18px Helvetica, Arial, sans-serif
-        box-sizing border-box
-        display block
-        border none
-        padding 20px
-        width 300px
-        margin-bottom 20px
-        font-size 18px
-        outline none
-        transition all 0.2s ease-in-out
-        
-        &::placeholder 
-          transition all 0.2s ease-in-out
-          color #999
-          font 18px Helvetica, Arial, sans-serif
-        
-        &:focus, &.populated 
-          padding-top 28px
-          padding-bottom 12px
-          
-          &::placeholder 
-            color transparent
-          
-          & + span 
-            opacity 1
-            top 10px
-      
-      span 
-        color #35dc9b
-        font 13px Helvetica, Arial, sans-serif
-        position absolute
-        top 0px
-        left 20px
-        opacity 0
-        transition all 0.2s ease-in-out
+    &:hover 
+      opacity 0.8
+
+  form label,
+  label.mixinField
+    position relative
+    display block
     
-    input[type="submit"] 
-    button
+  form label input,
+  div.mixinBox
+    font 18px Helvetica, Arial, sans-serif
+    box-sizing border-box
+    display block
+    border none
+    padding 20px
+    width 300px
+    margin-bottom 20px
+    font-size 18px
+    outline none
+    transition all 0.2s ease-in-out
+    
+    &::placeholder 
       transition all 0.2s ease-in-out
+      color #999
       font 18px Helvetica, Arial, sans-serif
-      border none
-      background #1aaf75
-      color #fff
-      padding 16px 40px
+    
+    &:focus, &.populated 
+      padding-top 28px
+      padding-bottom 12px
       
-      &:hover 
-        background #109f67
+      &::placeholder 
+        color transparent
+      
+      & + span 
+        opacity 1
+        top 10px
+  
+  span 
+    color var(--color-2)
+    font 13px Helvetica, Arial, sans-serif
+    position absolute
+    top 0px
+    left 20px
+    opacity 0
+    transition all 0.2s ease-in-out

@@ -1,0 +1,139 @@
+*
+  box-sizing border-box
+
+html, body
+  margin 0
+  padding 0
+  font-family sans-serif
+
+.nav
+  display flex
+  padding 6px 18px
+  justify-content flex-end
+
+  a
+    cursor pointer
+    display inline-block
+    padding 5px 12px
+    margin 0 9px
+    border-radius 3px
+    background dadaf3
+    color #111
+
+    &:hover
+      background whitesmoke
+      color: #747474
+#Entries
+  white-space pre-wrap
+
+  .entry
+    font-family monospace 
+
+.CodeMirror
+  height auto
+
+.view-splitter  .view-splitter .layout-pane-primary
+  height 100%
+
+#View
+  height 100%
+
+  input.mixinTab
+    display none
+
+  label.mixinTab
+    display inline-block
+    margin 0 0 -1px
+    padding 15px 25px
+    font-weight 600
+    text-align center
+    color #bbb
+    border 1px solid transparent
+
+    &:hover
+      color #888
+      cursor pointer
+
+  input.mixinTab:checked + label.mixinTab
+    color #555
+    border 1px solid #ddd
+    border-top 2px solid orange
+    border-bottom 1px solid #fff
+
+  section.mixinSection
+    display none
+    padding 20px
+    border-top 1px solid 
+
+  #mixinTab1:checked ~ #mixinSection1
+  #mixinTab2:checked ~ #mixinSection2
+  #mixinTab3:checked ~ #mixinSection3
+  #mixinTab4:checked ~ #mixinSection4
+  #mixinTab5:checked ~ #mixinSection5
+  #mixinTab6:checked ~ #mixinSection6
+  #mixinTab7:checked ~ #mixinSection7
+  #mixinTab8:checked ~ #mixinSection8
+  #mixinTab9:checked ~ #mixinSection9
+  #mixinTab10:checked ~ #mixinSection10
+  #mixinTab11:checked ~ #mixinSection11
+  #mixinTab12:checked ~ #mixinSection12
+  #mixinTab13:checked ~ #mixinSection13
+    display block
+
+  form
+    display flex
+    flex-wrap wrap
+    margin 20px auto
+    
+    label 
+      position relative
+      display block
+      
+      input 
+        font 18px Helvetica, Arial, sans-serif
+        box-sizing border-box
+        display block
+        border none
+        padding 20px
+        width 300px
+        margin-bottom 20px
+        font-size 18px
+        outline none
+        transition all 0.2s ease-in-out
+        
+        &::placeholder 
+          transition all 0.2s ease-in-out
+          color #999
+          font 18px Helvetica, Arial, sans-serif
+        
+        &:focus, &.populated 
+          padding-top 28px
+          padding-bottom 12px
+          
+          &::placeholder 
+            color transparent
+          
+          & + span 
+            opacity 1
+            top 10px
+      
+      span 
+        color #35dc9b
+        font 13px Helvetica, Arial, sans-serif
+        position absolute
+        top 0px
+        left 20px
+        opacity 0
+        transition all 0.2s ease-in-out
+    
+    input[type="submit"] 
+    button
+      transition all 0.2s ease-in-out
+      font 18px Helvetica, Arial, sans-serif
+      border none
+      background #1aaf75
+      color #fff
+      padding 16px 40px
+      
+      &:hover 
+        background #109f67

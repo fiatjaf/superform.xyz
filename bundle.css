@@ -1,0 +1,146 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+.nav {
+  display: flex;
+  padding: 6px 18px;
+  justify-content: flex-end;
+}
+.nav a {
+  cursor: pointer;
+  display: inline-block;
+  padding: 5px 12px;
+  margin: 0 9px;
+  border-radius: 3px;
+  background: dadaf3;
+  color: #111;
+}
+.nav a:hover {
+  background: #f5f5f5;
+  color: #747474;
+}
+#Entries {
+  white-space: pre-wrap;
+}
+#Entries .entry {
+  font-family: monospace;
+}
+.CodeMirror {
+  height: auto;
+}
+.view-splitter .view-splitter .layout-pane-primary {
+  height: 100%;
+}
+#View {
+  height: 100%;
+}
+#View input.mixinTab {
+  display: none;
+}
+#View label.mixinTab {
+  display: inline-block;
+  margin: 0 0 -1px;
+  padding: 15px 25px;
+  font-weight: 600;
+  text-align: center;
+  color: #bbb;
+  border: 1px solid transparent;
+}
+#View label.mixinTab:hover {
+  color: #888;
+  cursor: pointer;
+}
+#View input.mixinTab:checked + label.mixinTab {
+  color: #555;
+  border: 1px solid #ddd;
+  border-top: 2px solid #ffa500;
+  border-bottom: 1px solid #fff;
+}
+#View section.mixinSection {
+  display: none;
+  padding: 20px;
+  border-top: 1px solid;
+}
+#View #mixinTab1:checked ~ #mixinSection1,
+#View #mixinTab2:checked ~ #mixinSection2,
+#View #mixinTab3:checked ~ #mixinSection3,
+#View #mixinTab4:checked ~ #mixinSection4,
+#View #mixinTab5:checked ~ #mixinSection5,
+#View #mixinTab6:checked ~ #mixinSection6,
+#View #mixinTab7:checked ~ #mixinSection7,
+#View #mixinTab8:checked ~ #mixinSection8,
+#View #mixinTab9:checked ~ #mixinSection9,
+#View #mixinTab10:checked ~ #mixinSection10,
+#View #mixinTab11:checked ~ #mixinSection11,
+#View #mixinTab12:checked ~ #mixinSection12,
+#View #mixinTab13:checked ~ #mixinSection13 {
+  display: block;
+}
+#View form {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 20px auto;
+}
+#View form label {
+  position: relative;
+  display: block;
+}
+#View form label input {
+  font: 18px Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  display: block;
+  border: none;
+  padding: 20px;
+  width: 300px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+#View form label input::placeholder {
+  transition: all 0.2s ease-in-out;
+  color: #999;
+  font: 18px Helvetica, Arial, sans-serif;
+}
+#View form label input:focus,
+#View form label input.populated {
+  padding-top: 28px;
+  padding-bottom: 12px;
+}
+#View form label input:focus::placeholder,
+#View form label input.populated::placeholder {
+  color: transparent;
+}
+#View form label input:focus + span,
+#View form label input.populated + span {
+  opacity: 1;
+  top: 10px;
+}
+#View form label span {
+  color: #35dc9b;
+  font: 13px Helvetica, Arial, sans-serif;
+  position: absolute;
+  top: 0px;
+  left: 20px;
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+}
+#View form input[type="submit"],
+#View form button {
+  transition: all 0.2s ease-in-out;
+  font: 18px Helvetica, Arial, sans-serif;
+  border: none;
+  background: #1aaf75;
+  color: #fff;
+  padding: 16px 40px;
+}
+#View form input[type="submit"]:hover,
+#View form button:hover {
+  background: #109f67;
+}

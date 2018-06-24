@@ -1,0 +1,44 @@
+mixin tab
+  - window.mixinTabN = window.mixinTabN || 0
+  - mixinTabN++
+
+  input.mixinTab(id='mixinTab' + mixinTabN, type='radio', name='mixinTabs',
+                 checked=mixinTabN == 1)
+  label.mixinTab(for='mixinTab' + mixinTabN)
+    block
+
+mixin section
+  - window.mixinSectionN = window.mixinSectionN || 0
+  - mixinSectionN++
+
+  section.mixinSection(id='mixinSection' + mixinSectionN)
+    block
+
+mixin list(items)
+  ul
+    each item in items
+      li= item
+
+mixin table(collection, headers)
+  - let headers = headers || collection[0] && Object.keys(collection[0]) || []
+
+  table.mixinTable
+    thead
+      tr
+        each h in headers
+          th= h
+    tbody
+      each o in collection
+        tr
+          each h in headers
+            td= o[h]
+
+mixin field(name, label)
+  - label = label || name
+
+  label
+    input(type='text', name=name, placeholder=label)
+    span= label
+
+mixin value(name, value)
+  input(type='hidden', name=name, value=value)

@@ -6,6 +6,7 @@ const render = require('react-dom').render
 const page = require('page')
 const SplitterLayout = require('react-splitter-layout').default
 const cuid = require('cuid')
+const debounce = require('debounce')
 
 const View = require('./View')
 const Entries = require('./Entries')
@@ -32,11 +33,19 @@ class App extends React.Component {
 
     this.state = {
       user: null,
+      userforms: [],
       form: null,
       entries: []
     }
 
     this.cancel = []
+
+    this.secondarySizes = JSON.parse(
+      localStorage.getItem('secondary-panel-sizes') ||
+      '[50, 0, 0]'
+    )
+
+    this.dpanelSizeChanged = debounce(this.panelSizeChanged, 700)
   }
 
   componentWillMount () {
@@ -52,6 +61,7 @@ class App extends React.Component {
         entries: []
       })
 
+      this.formsRef = null
       this.formRef = null
       this.entriesRef = null
 
@@ -61,7 +71,8 @@ class App extends React.Component {
     page('/edit/:form', ctx => {
       this.cancelListeners()
 
-      this.formRef = db.doc('forms/' + ctx.params.form)
+      this.formsRef = db.collection('forms')
+      this.formRef = this.formsRef.doc(ctx.params.form)
       this.entriesRef = this.formRef.collection('entries')
 
       this.cancel.push(this.formRef.onSnapshot(f => {
@@ -88,7 +99,7 @@ class App extends React.Component {
         })
       }))
 
-      firebase.auth().onAuthStateChanged(user => {
+      this.cancel.push(firebase.auth().onAuthStateChanged(user => {
         this.setState(st => {
           st.user = user
 
@@ -98,7 +109,13 @@ class App extends React.Component {
 
           return st
         })
-      })
+
+        this.cancel.push(this.formsRef.onSnapshot(e => {
+          this.setState({
+            userforms: e.docs.map(d => d.data())
+          })
+        }))
+      }))
     })
 
     page()
@@ -128,11 +145,16 @@ class App extends React.Component {
             }, 'Sign in with ' + name),
           )),
         this.state.form && this.state.entries &&
-          h(SplitterLayout, {percentage: true}, [
+          h(SplitterLayout, {
+            percentage: true,
+            secondaryInitialSize: this.secondarySizes[0],
+            onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(0, s)
+          }, [
             h(SplitterLayout, {
               vertical: true,
               percentage: true,
-              secondaryInitialSize: 0,
+              secondaryInitialSize: this.secondarySizes[1],
+              onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(1, s),
               customClassName: 'view-splitter'
             }, [
               h(View, {
@@ -149,7 +171,8 @@ class App extends React.Component {
             h(SplitterLayout, {
               vertical: true,
               percentage: true,
-              secondaryInitialSize: 0
+              secondaryInitialSize: this.secondarySizes[2],
+              onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(2, s)
             }, [
               h(UI, {
                 ui: this.state.form.ui,
@@ -165,9 +188,17 @@ class App extends React.Component {
     )
   }
 
+  panelSizeChanged (index, size) {
+    this.secondarySizes[index] = size
+    localStorage.setItem(
+      'secondary-panel-sizes',
+      JSON.stringify(this.secondarySizes)
+    )
+  }
+
   saveForm (data) {
     let formData = this.state.form || {
-      author: this.state.user.uid,
+      author: this.state.user && this.state.user.uid,
       created_at: firebase.firestore.Timestamp.now()
     }
 
@@ -175,7 +206,7 @@ class App extends React.Component {
   }
 
   addEntry (entry) {
-    entry.submitter = this.state.user.uid
+    entry.submitter = this.state.user && this.state.user.uid
     entry.created_at = firebase.firestore.Timestamp.now()
 
     this.entriesRef.add(entry)

@@ -5,15 +5,59 @@ html, body
   margin 0
   padding 0
   font-family sans-serif
+  background-color #f1f1f1
+
+h1, h2, h3, h4, h5, h6
+  padding 0 20px
+  font-family Bangers, monospace
+  font-weight normal
+
+.humane-flatty
+  pre, code
+    white-space pre-wrap
+    word-break break-word
+
+#landing
+  font-family Bangers, sans-serif
 
 .nav
   display flex
-  padding 12px 18px
-  justify-content flex-end
+  justify-content space-between
   background #5e5e95
   color white
-  font-size 110%
-  font-family monospace
+
+  .logo
+    display flex
+
+    & > *
+      display flex
+      flex-direction column
+      justify-content center
+
+    img
+      width 50px
+      height 50px
+      margin-left 10px
+
+  .user
+    display flex
+    padding 12px 18px
+    justify-content flex-end
+    font-size 110%
+    font-family monospace
+
+    & > *
+      display flex
+      flex-direction column
+      justify-content center
+
+    img
+      border-radius 50%
+      border 3px solid #b0b0b0
+      padding 2px
+      margin 2px
+      width 70px
+      height 70px
 
   a
     cursor pointer
@@ -26,16 +70,6 @@ html, body
     &:hover
       background whitesmoke
       color: #747474
-
-h1, h2, h3, h4, h5, h6
-  padding 0 20px
-  font-family monospace
-  font-weight normal
-
-.humane-flatty
-  pre, code
-    white-space pre-wrap
-    word-break break-word
 
 #Entries
   white-space pre-wrap
@@ -90,13 +124,16 @@ h1, h2, h3, h4, h5, h6
   --color-1 orange
   --color-2 #35dc9b
   --color-3 #1aaf75
+  --color-4 #b83e0b
   --font Ubuntu, Helvetica, sans-serif
 
   height 100%
-  font-family var(--font) !important
+  padding 0 10px
+  font-family var(--font)
 
   h1, h2, h3, h4, h5, h6
-    color var(--color-1)
+    color var(--color-4)
+    font-family var(--font)
     padding 0 20px
 
   input.mixinTab

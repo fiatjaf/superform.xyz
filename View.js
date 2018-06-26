@@ -46,8 +46,7 @@ module.exports = class extends React.Component {
             const require = n => depMap[n] || localRequires[n]
 
             var exports = {}
-            var module = {}
-            module.exports = exports
+            var module = {exports} // eslint-disable-line no-unused-vars
 
             try {
               eval(this.props.code)

@@ -1,0 +1,3 @@
+All data is stored on Firebase. Both forms definitions and submitted entries are publicly viewable by anyone. Besides that, we don't collect any other data, but the Firebase SDK we include may collect a lot of stuff, we don't know how it operates internally.
+
+Eventually we may collect some basic analytics data, insufficient to identify anyone.

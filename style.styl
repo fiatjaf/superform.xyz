@@ -7,9 +7,19 @@ html, body
   font-family sans-serif
   background-color #f1f1f1
 
+a
+  color inherit
+
 h1, h2, h3, h4, h5, h6
   padding 0 20px
   font-family Bangers, monospace
+  font-weight normal
+
+  a
+    text-decoration none
+
+h4, h5, h6
+  font-family monospace
   font-weight normal
 
 .humane-flatty
@@ -20,14 +30,30 @@ h1, h2, h3, h4, h5, h6
 #landing
   font-family Bangers, sans-serif
 
+  a
+    color #ff8282
+
 .nav
   display flex
   justify-content space-between
   background #5e5e95
   color white
 
+  a
+    cursor pointer
+    display inline-block
+    padding 5px 12px
+    margin 0 9px
+    border-radius 3px
+    text-decoration none
+
+    &:hover
+      background whitesmoke
+      color: #747474
+
   .logo
     display flex
+    flex-grow 3
 
     & > *
       display flex
@@ -37,9 +63,8 @@ h1, h2, h3, h4, h5, h6
     img
       width 50px
       height 50px
-      margin-left 10px
 
-  .user
+  .clone, .user
     display flex
     padding 12px 18px
     justify-content flex-end
@@ -51,6 +76,18 @@ h1, h2, h3, h4, h5, h6
       flex-direction column
       justify-content center
 
+  .clone
+    a
+      padding 2px 4px
+      background rgba(255, 255, 255, 0.4)
+      border 2px solid black
+      color black
+
+      &:hover
+        background rgba(255, 255, 255, 0.8)
+        color #929292
+
+  .user
     img
       border-radius 50%
       border 3px solid #b0b0b0
@@ -59,17 +96,39 @@ h1, h2, h3, h4, h5, h6
       width 70px
       height 70px
 
-  a
-    cursor pointer
-    display inline-block
-    padding 5px 12px
-    margin 0 9px
-    border-radius 3px
-    background dadaf3
+#profile
+  display flex
+  justify-content space-evenly
+  margin 20px 12px
 
-    &:hover
-      background whitesmoke
-      color: #747474
+  .avatar
+    width 100px
+    height 100px
+
+  .forms
+    display flex
+    flex-direction column
+
+    & > div
+      padding 15px 15px
+      opacity 0.6
+      background white
+      margin 10px 0
+      border-radius 3px
+
+      &:hover
+        opacity 1
+
+      a:hover
+        color #555
+
+    code
+      overflow hidden
+      text-overflow ellipsis
+      padding 10px 2px
+      display block
+      max-height 180px
+      white-space pre-wrap
 
 #Entries
   white-space pre-wrap

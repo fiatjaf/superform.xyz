@@ -3,11 +3,15 @@
 const React = require('react')
 const h = require('react-hyperscript')
 const render = require('react-dom').render
-const page = require('page')
+const Router = require('react-router-dom').BrowserRouter
+const Route = require('react-router-dom').Route
+const Link = require('react-router-dom').Link
+const Redirect = require('react-router-dom').Redirect
+const qs = require('qs')
 const SplitterLayout = require('react-splitter-layout').default
 const cuid = require('cuid')
 const debounce = require('debounce')
-const gravatar = require('gravatar-url')
+const gravatarURL = require('gravatar-url')
 
 const View = require('./View')
 const Entries = require('./Entries')
@@ -29,29 +33,161 @@ db.settings({
   timestampsInSnapshots: true
 })
 
-const LANDING = 'landing'
-const ALL_FORMS = 'forms'
-const SINGLE_FORM = 'form'
-
 class App extends React.Component {
   constructor () {
     super()
 
     this.state = {
-      page: LANDING,
-
       user: null,
-      userforms: [],
-      form: null,
-      editing: false,
-      entries: []
+      userforms: []
     }
 
-    this.formsRef = db.collection('forms')
+    this.formsRef = null
+    this.cancelFormsListener = () => {}
+  }
+
+  componentWillUnmount () {
+    this.cancelFormsListener()
+  }
+
+  componentDidMount () {
+    firebase.auth().onAuthStateChanged(user => {
+      this.cancelFormsListener()
+
+      this.setState({user})
+
+      if (user) {
+        this.cancelFormsListener = db.collection('forms').where('owner', '==', user.uid)
+          .onSnapshot(e => {
+            this.setState({
+              userforms: e.docs.map(d => Object.assign(d.data(), {id: d.id}))
+            })
+          })
+      }
+    })
+
+    firebase.auth().getRedirectResult()
+  }
+
+  render () {
+    return (
+      h(Router, [
+        h('div', [
+          h('.nav', [
+            h('.logo', [
+              h('div', [
+                h(Link, {to: '/'}, [ h('img', {src: '/icon.png'}) ])
+              ]),
+              h('h1', [
+                h(Link, {to: '/'}, 'Superform')
+              ])
+            ]),
+            h(Route, {exact: true, path: '/:action/:form', render: ({match}) =>
+              h('.clone', [
+                h(Link, {to: `/new?from=${match.params.form}`}, 'Clone this')
+              ])
+            }),
+            h('.user', this.state.user
+              ? [
+                h(Link, {to: '/account'}, [
+                  gravatar(this.state.user.email)
+                ])
+              ]
+              : [
+                ['Google', new firebase.auth.GoogleAuthProvider()],
+                ['Twitter', new firebase.auth.TwitterAuthProvider()]
+              ].map(([name, provider]) =>
+                h('a', {
+                  onClick: () => {
+                    firebase.auth().signInWithPopup(provider)
+                  }
+                }, 'Sign in with ' + name),
+              )
+            )
+          ]),
+          h(Route, {path: '/new', render: ({location}) => {
+            let newid = cuid.slug()
+
+            let query = qs.parse(location.search.slice(1))
+            if (query.from) {
+              db.doc(`forms/${query.from}`).get()
+                .then(d => {
+                  let data = d.data()
+                  delete data.id
+                  delete data.updated_at
+                  data.owner = this.state.user && this.state.user.uid
+                  data.created_at = firebase.firestore.Timestamp.now()
+                  data.cloned_from = query.from
+
+                  return db.doc(`forms/${newid}`).set(data)
+                })
+                .then(() => {
+                  n_success('Cloned successfully.')
+                })
+                .catch(e => {
+                  n_error('Failed to clone form. See console for more details.')
+                  console.warn('failed to clone form:', e)
+                })
+            }
+
+            return h(Redirect, {to: `/edit/${newid}`})
+          }}),
+          h(Route, {exact: true, path: '/account', render: () =>
+            this.state.user
+              ? (
+                h('#profile', [
+                  h('div', [
+                    gravatar(this.state.user.email),
+                    h('h3', this.state.user.displayName),
+                    h('h4', this.state.user.email),
+                    h('h5', `<${this.state.user.uid}>`),
+                    h('div', [
+                      h(Link, {
+                        to: '/',
+                        onClick: () => {
+                          firebase.auth().signOut()
+                        }
+                      }, 'Logout')
+                    ])
+                  ]),
+                  h('div', [
+                    h('h3', 'Forms'),
+                    h('.forms', this.state.userforms.map(f =>
+                      h('div', [
+                        h(Link, {to: `/edit/${f.id}`}, [
+                          h('h4', f.id)
+                        ]),
+                        h('code', f.ui)
+                      ])
+                    ))
+                  ])
+                ])
+              )
+              : null
+          }),
+          h(Route, {exact: true, path: '/', render: () => h('style', {
+            dangerouslySetInnerHTML: {
+              __html: `#landing { display: block !important; }`
+            }
+          })}),
+          h(Route, {exact: true, path: '/:action/:form', component: SingleForm})
+        ])
+      ])
+    )
+  }
+}
+
+class SingleForm extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      entries: [],
+      form: null
+    }
+
     this.formRef = null
     this.entriesRef = null
-
-    this.cancelFormsListener = () => {}
     this.cancelFormListener = () => {}
     this.cancelEntriesListener = () => {}
 
@@ -61,52 +197,30 @@ class App extends React.Component {
     )
 
     this.dpanelSizeChanged = debounce(this.panelSizeChanged, 700)
+
+    if (this.props.match.params.action === 'view') {
+      this.editing = false
+    } else if (this.props.match.params.action === 'edit') {
+      this.editing = true
+    }
   }
 
   componentWillUnmount () {
-    this.cancel.forEach(c => c())
-    this.cancel = []
+    this.cancelFormListener()
+    this.cancelEntriesListener()
   }
 
   componentDidMount () {
-    page('/', () => {
-      this.setState({page: LANDING})
-    })
+    this.formRef = db.doc(`forms/${this.props.match.params.form}`)
+    this.entriesRef = this.formRef.collection('entries')
 
-    page('/forms', () => {
-      this.setState({page: ALL_FORMS})
-    })
-
-    page('/new', () => {
-      this.setState({
-        form: null,
-        entries: []
-      })
-
-      page(`/edit/${cuid.slug()}`)
-    })
-
-    page('/:action/:form', ctx => {
-      this.setState({page: SINGLE_FORM})
-
-      if (ctx.params.action === 'view') {
-        this.setState({editing: false})
-      } else if (ctx.params.action === 'edit') {
-        this.setState({editing: true})
-      } else {
-        return
-      }
-
-      this.formRef = this.formsRef.doc(ctx.params.form)
-      this.entriesRef = this.formRef.collection('entries')
-
-      this.cancelFormListener = this.formRef.onSnapshot(f => {
-        let form = f.exists
-          ? f.data()
-          : {
-            owner: null,
-            created_at: firebase.firestore.Timestamp.now(),
-            code: `exports.reduce = function (state, entry) {
+    this.cancelFormListener = this.formRef.onSnapshot(f => {
+      let form = f.exists
+        ? f.data()
+        : {
+          owner: null,
+          created_at: firebase.firestore.Timestamp.now(),
+          code: `exports.reduce = function (state, entry) {
   switch (entry.type) {
     case 'normal_submission':
       state.submissions.push(entry.content)
@@ -119,9 +233,9 @@ exports.init = function () {
     submissions: []
   }
 }`,
-            ui: `
+          ui: `
 div
-  h1 Hello, #{user.email}!
+  h1 Hello, #{user.email || 'anonymous'}!
   p These are the last submissions we have:
   +list(state.submissions)
   div
@@ -131,52 +245,30 @@ div
       +field('content', 'Content')
       button 'Ok'
 `
-          }
-        this.setState({form})
-      })
+        }
+      this.setState({form})
+    })
 
-      this.cancelEntriesListener = this.entriesRef.orderBy('created_at', 'asc')
-        .onSnapshot(e => {
-          this.setState({
-            entries: e.docs.map(d => {
-              let entry = d.data()
-              entry.created_at = entry.created_at.toDate()
-              entry.updated_at = entry.updated_at && entry.updated_at.toDate()
-              entry.id = d.id
-              return entry
-            })
+    this.cancelEntriesListener = this.entriesRef.orderBy('created_at', 'asc')
+      .onSnapshot(e => {
+        this.setState({
+          entries: e.docs.map(d => {
+            let entry = d.data()
+            entry.created_at = entry.created_at.toDate()
+            entry.updated_at = entry.updated_at && entry.updated_at.toDate()
+            entry.id = d.id
+            return entry
           })
         })
-    })
-    page.exit('/:action/:form', () => {
-      this.cancelFormListener()
-      this.cancelEntriesListener()
-    })
-
-    page()
+      })
 
     firebase.auth().onAuthStateChanged(user => {
-      this.cancelFormsListener()
-
-      if (!user) {
-        this.setState({user: null})
-        return
-      }
-
       this.setState(st => {
         st.user = user
 
-        if (st.form && st.form.owner === null) {
-          st.form.owner = user.uid
-        }
+        if (user && !st.form.owner) st.form.owner = user.uid
 
         return st
-      })
-
-      this.cancelFormsListener = this.formsRef.onSnapshot(e => {
-        this.setState({
-          userforms: e.docs.map(d => Object.assign(d.data(), {id: d.id}))
-        })
       })
     })
 
@@ -184,105 +276,55 @@ div
   }
 
   render () {
-    let secondarySizes = this.state.editing ? this.secondarySizes : [0, 0, 50]
-
-    var body
-    switch (this.state.page) {
-      case SINGLE_FORM:
-        body = this.state.form && this.state.entries &&
-          h(SplitterLayout, {
-            percentage: true,
-            secondaryInitialSize: secondarySizes[0],
-            onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(0, s)
-          }, [
-            h(SplitterLayout, {
-              vertical: true,
-              percentage: true,
-              secondaryInitialSize: secondarySizes[1],
-              onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(1, s),
-              customClassName: 'view-splitter'
-            }, [
-              h(View, {
-                code: this.state.form.code,
-                ui: this.state.form.ui,
-                entries: this.state.entries,
-                user: {
-                  uid: this.state.user.uid,
-                  email: this.state.user.email,
-                  name: this.state.user.displayName
-                },
-                addEntry: data => this.addEntry(data)
-              }),
-              h(Entries, {
-                entries: this.state.entries,
-                editEntry: (id, data) => this.editEntry(id, data),
-                deleteEntry: id => this.deleteEntry(id)
-              })
-            ]),
-            h(SplitterLayout, {
-              vertical: true,
-              percentage: true,
-              secondaryInitialSize: secondarySizes[2],
-              onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(2, s)
-            }, [
-              h(UI, {
-                code: this.state.form.ui,
-                save: ui => this.saveForm({ui})
-              }),
-              h(Code, {
-                code: this.state.form.code,
-                save: code => this.saveForm({code})
-              })
-            ])
-          ])
-        break
-      case LANDING:
-        body = null
-        break
-      case ALL_FORMS:
-        body = h('ul', this.state.userforms.map(f =>
-          h('li', [
-            h('a', {href: `/edit/${f.id}`}, f.id)
-          ])
-        ))
-        break
-    }
+    let secondarySizes = this.editing ? this.secondarySizes : [0, 0, 50]
 
     return (
-      h('div', [
-        h('.nav', [
-          h('.logo', [
-            h('div', [
-              h('img', {src: '/icon.png'})
-            ]),
-            h('h1', 'Superform')
+      this.state.form && this.state.entries &&
+        h(SplitterLayout, {
+          percentage: true,
+          secondaryInitialSize: secondarySizes[0],
+          onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(0, s)
+        }, [
+          h(SplitterLayout, {
+            vertical: true,
+            percentage: true,
+            secondaryInitialSize: secondarySizes[1],
+            onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(1, s),
+            customClassName: 'view-splitter'
+          }, [
+            h(View, {
+              code: this.state.form.code,
+              ui: this.state.form.ui,
+              entries: this.state.entries,
+              user: this.state.user ? {
+                uid: this.state.user.uid,
+                email: this.state.user.email,
+                name: this.state.user.displayName
+              } : {},
+              addEntry: data => this.addEntry(data)
+            }),
+            h(Entries, {
+              entries: this.state.entries,
+              editEntry: (id, data) => this.editEntry(id, data),
+              deleteEntry: id => this.deleteEntry(id)
+            })
           ]),
-          h('.user', this.state.user
-            ? [
-              h('a', {href: '/forms'}, [
-                h('img', {
-                  src: gravatar(this.state.user.email, {
-                    size: 270,
-                    default: `https://robohash.org/${this.state.user.uid}.png`
-                  })
-                })
-              ])
-            ]
-            : [
-              ['Google', new firebase.auth.GoogleAuthProvider()],
-              ['Twitter', new firebase.auth.TwitterAuthProvider()],
-              ['GitHub', new firebase.auth.GithubAuthProvider()]
-            ].map(([name, provider]) =>
-              h('a', {
-                onClick: () => {
-                  firebase.auth().signInWithPopup(provider)
-                }
-              }, 'Sign in with ' + name),
-            )
-          )
-        ]),
-        body
-      ])
+          h(SplitterLayout, {
+            vertical: true,
+            percentage: true,
+            secondaryInitialSize: secondarySizes[2],
+            onSecondaryPaneSizeChange: s => this.dpanelSizeChanged(2, s)
+          }, [
+            h(UI, {
+              code: this.state.form.ui,
+              save: ui => this.saveForm({ui})
+            }),
+            h(Code, {
+              code: this.state.form.code,
+              save: code => this.saveForm({code})
+            })
+          ])
+        ])
     )
   }
 
@@ -307,6 +349,7 @@ div
   addEntry (data) {
     this.entriesRef.add({
       submitter: this.state.user && this.state.user.uid,
+      email: this.state.user.email,
       created_at: firebase.firestore.Timestamp.now(),
       data
     })
@@ -343,6 +386,15 @@ div
         console.warn('failed to delete entry:', e)
       })
   }
+}
+
+function gravatar (email) {
+  return h('img.avatar', {
+    src: gravatarURL(email || '@', {
+      size: 270,
+      default: `https://robohash.org/${email}.png`
+    })
+  })
 }
 
 render(
